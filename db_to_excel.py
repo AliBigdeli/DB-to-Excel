@@ -14,15 +14,16 @@ class db_mgmt:
         return table_names_list
     
     def columns_in_table(self,table_name):
-        self.c.execute(f"select * from {table_name} where 1=0;")
+        self.c.execute(f"select * from '{table_name}' where 1=0;")
         return [d[0] for d in self.c.description]
 
     def read(self,table_name):
         rows = []
         
         rows.append(tuple(self.columns_in_table(table_name)))
-        self.c.execute(f"SELECT * FROM {table_name}")
+        self.c.execute(f"SELECT * FROM '{table_name}'")
         rows_temp = self.c.fetchall()
+        #print(rows_temp)
         rows += rows_temp
         return rows
 
@@ -37,21 +38,19 @@ class xls_mgmt:
         
     def write_to_xlsx(self,table_name,data):
         self.worksheet = self.workbook.add_worksheet(table_name) 
-        for row in data:
-            for cell in row:
-                    self.worksheet.write(int(data.index(row)),int(row.index(cell)),cell)  
+        for idr,row in enumerate(data):
+            for idc,cell in enumerate(row):
+                self.worksheet.write(idr,idc,cell)
     
     def close(self):
         self.workbook.close() 
 
 
 if __name__ == "__main__":
-    db_name = input("enter database name: ")
-    db = db_mgmt(f"./{db_name}.db")
+    db = db_mgmt("./database.db")
     excel = xls_mgmt()
     tables = db.tables_in_sqlite_db()
     for table in tables:
         data = db.read(table[0])
         excel.write_to_xlsx(table[0],data)
     excel.close()
-
